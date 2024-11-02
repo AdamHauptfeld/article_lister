@@ -5,11 +5,9 @@ import openpyxl
 # This program goes through an entire directory ("folder") and it's subdirectories and creates an excel file listing every file
 # whose name follows the pattern: "authornames - articlename.extension"
 
-# D:\Philosophy\Collected Philosophy Articles
 
 def main():
-    #directory_path = input("Enter path to directory (without quotation marks): ")
-    directory_path = r'D:\Philosophy\Collected Philosophy Articles'
+    directory_path = input("Enter path to directory (without quotation marks): ")
     file_list = get_file_names(directory_path)
     file_tuples_list = cleaned_tuples_lister(file_list)
     article_table = table_creator(file_tuples_list)
@@ -17,12 +15,13 @@ def main():
     article_table.to_excel(r'C:\Users\ahaup\OneDrive\Desktop\philosophy_article_database.xlsx', index=False)
 
 
-# Returns a list of file paths+names found in the specified folder and its subfolders.
+# Returns a list of file paths found in the specified folder and its subfolders.
 def get_file_names(folder_path):
     first_list = []
     for root, dirs, files in os.walk(folder_path):
         first_list.extend([os.path.join(root, f) for f in files])
-    
+
+    #limits files to only those with hyphens in their names.
     file_list = []
     for name in first_list:
         if '-' in name:
@@ -31,7 +30,7 @@ def get_file_names(folder_path):
     return file_list
 
 
-#Create a list containing a tuple for each file, each tuple has a file's authors[0], name[1], folder[2] and  extension[3]
+#Create a list containing a tuple for each file. Each tuple has a file's authors[0], name[1], folder[2] and  extension[3].
 #Also, it uses strip() to remove whitespace from the author and article name.
 def cleaned_tuples_lister(list_of_file_names):
     file_tuple_list = []
