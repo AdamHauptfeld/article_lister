@@ -1,9 +1,11 @@
 import os
+import time
 import pandas as pd
 from keyworder import keyworder_main
 
 # This program goes through an entire directory (folder) and its subdirectories and creates an excel file listing every file
 # whose name follows the pattern: "authornames - articlename.extension"
+
 
 def main():
     #Get the desired directory from the user and enter new file name and choice to use ai keyworder.
@@ -21,7 +23,11 @@ Warning: this could take a lot of time. (Y/N): ").strip()
             use_keyworder = False
         else:
             print("\n**You must enter Y or N.**\n")
+    
+    #starts keeping track of execution time.
+    start_time = time.time()
 
+    
     #Put the paths of all the files in the directory and its subdirectories in a list.
     file_list = get_file_names(directory_path)
     
@@ -38,10 +44,32 @@ Warning: this could take a lot of time. (Y/N): ").strip()
     article_table = table_creator(file_columns_list, use_keyworder)
 
     #export the dataframe as an xlsx
+    print("\n")
     print(article_table.head())
     article_table.to_excel(rf'C:\Users\ahaup\OneDrive\Desktop\{new_name}.xlsx', index=False)
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("\nExcel file created.")
+    print(f"Program took {execution_time:.4f} seconds to run")
+    rerun = False
+    answer = input("Do you want to run the program again? (Y/N): ").strip()
+    if answer.upper() == 'Y':
+        rerun = True
+    elif answer.upper() == "N":
+         rerun = False
+    else:
+        print("\n**You must enter Y or N.**\n")
+
+    if rerun:
+        main()
+    else:
+        quit
+
     
     
+
+
 # Returns a list of file paths+names found in the specified folder and its subfolders.
 def get_file_names(folder_path):
     first_list = []
@@ -50,7 +78,8 @@ def get_file_names(folder_path):
     
     file_list = []
     for name in first_list:
-        if '-' in name:
+        article_name = name.rsplit('\\', 1)[1]
+        if '-' in article_name:
             file_list.append(name)
     
     return file_list
@@ -81,17 +110,29 @@ def cleaned_list_creator(list_of_file_names, keyword_dict):
     
     return file_columns_list
 
-
 #for each file in file_list, runs the ai keyword creater, and stores the list of keywords in a dictionary
 #with the file's index as the key
 def keyword_dictionary_creator(file_list):
     index = 0
     keyword_dictionary = {}
     for file_path in file_list:
-        keywords = keyworder_main(file_path)
-        keyword_dictionary[index] = keywords
-        index += 1
+        try:
+            keywords = keyworder_main(file_path)
+            keyword_dictionary[index] = keywords
+            index += 1
+        except FileNotFoundError:
+            print(f"Warning: Could not find file: {file_path}")
+            keyword_dictionary[index] = "Keyworder FileNotFoundError"
+        
+        except PermissionError:
+            print(f"Warning: No permission to access file: {file_path}")
+            keyword_dictionary[index] = "Keyworder PermissionError"
+        
+        except Exception as e:
+            print(f"Warning: An error occurred with file {file_path}: {str(e)}")
+            keyword_dictionary[index] = f"Keyworder Error: {str(e)}"
     return keyword_dictionary
+
 
 
 def table_creator(list_of_item_lists, use_keyworder):
@@ -102,5 +143,5 @@ def table_creator(list_of_item_lists, use_keyworder):
     
     return article_table
 
-
-main()
+if __name__ == "__main__":
+    main()
